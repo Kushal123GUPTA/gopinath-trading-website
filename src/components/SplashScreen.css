@@ -1,0 +1,77 @@
+.splash-screen {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(30, 20, 15, 0.85); /* Deep rich earthy tone */
+  backdrop-filter: blur(15px); /* Optimized for network performance */
+  -webkit-backdrop-filter: blur(15px);
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.8s ease-in-out, background-color 0.8s ease-in-out;
+}
+
+.splash-screen.fade-out {
+  background-color: transparent;
+  backdrop-filter: blur(0px);
+  -webkit-backdrop-filter: blur(0px);
+  opacity: 0;
+  visibility: hidden; /* Ensure it's gone from interactions */
+  pointer-events: none;
+}
+
+.splash-logo-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  perspective: 1000px;
+}
+
+.splash-logo {
+  border-radius: 20px;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+  transform-origin: center center;
+  animation: pulseLogo 1.2s ease-in-out forwards;
+}
+
+.splash-screen.fade-out .splash-logo {
+  /* Animate to top-left corner, shrink, and fade out beautifully */
+  animation: flyToCorner 1s cubic-bezier(0.77, 0, 0.175, 1) forwards;
+}
+
+@keyframes pulseLogo {
+  0% {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes flyToCorner {
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 1;
+    border-radius: 20px;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+  }
+  40% {
+    opacity: 1;
+    box-shadow: none; /* Drop shadow early for performance */
+  }
+  100% {
+    /* More robust landing coordinates */
+    transform: translate(-42vw, -45vh) scale(0.2);
+    opacity: 0;
+    border-radius: 4px;
+  }
+}
+
+.app-content {
+  opacity: 1; /* Always render so it shows smoothly behind the frosted glass mask */
+}
