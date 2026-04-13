@@ -1,9 +1,50 @@
 'use client';
 
 import { useLanguage } from "@/context/LanguageContext";
+import { useState } from "react";
 
 export default function Contact() {
   const { t } = useLanguage();
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    message: ''
+  });
+  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [errorMessage, setErrorMessage] = useState('');
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setStatus('loading');
+    setErrorMessage('');
+
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (response.ok) {
+        setStatus('success');
+        setFormData({ name: '', email: '', message: '' });
+      } else {
+        const data = await response.json();
+        setErrorMessage(data.message || 'Something went wrong');
+        setStatus('error');
+      }
+    } catch (error) {
+      setErrorMessage('Failed to send message. Please try again later.');
+      setStatus('error');
+    }
+  };
 
   return (
     <>
@@ -58,20 +99,64 @@ export default function Contact() {
             {/* Contact Form */}
             <div style={{ backgroundColor: 'white', padding: '3rem', borderRadius: '10px', boxShadow: 'var(--shadow-card)' }}>
               <h3 style={{ marginBottom: '2rem', fontSize: '1.5rem' }}>{t('contact_form_title')}</h3>
-              <form style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }} onSubmit={(e) => e.preventDefault()}>
+              
+              {status === 'success' && (
+                <div style={{ padding: '1rem', backgroundColor: '#d4edda', color: '#155724', borderRadius: '5px', marginBottom: '1rem' }}>
+                  Your message has been sent successfully!
+                </div>
+              )}
+              
+              {status === 'error' && (
+                <div style={{ padding: '1rem', backgroundColor: '#f8d7da', color: '#721c24', borderRadius: '5px', marginBottom: '1rem' }}>
+                  {errorMessage}
+                </div>
+              )}
+
+              <form style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }} onSubmit={handleSubmit}>
                 <div>
                   <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>{t('contact_form_name')}</label>
-                  <input type="text" placeholder="John Doe" style={{ width: '100%', padding: '0.8rem', borderRadius: '5px', border: '1px solid #ddd', fontFamily: 'inherit' }} />
+                  <input 
+                    type="text" 
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    required
+                    placeholder="John Doe" 
+                    style={{ width: '100%', padding: '0.8rem', borderRadius: '5px', border: '1px solid #ddd', fontFamily: 'inherit' }} 
+                  />
                 </div>
                 <div>
                   <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>{t('contact_form_email')}</label>
-                  <input type="email" placeholder="john@example.com" style={{ width: '100%', padding: '0.8rem', borderRadius: '5px', border: '1px solid #ddd', fontFamily: 'inherit' }} />
+                  <input 
+                    type="email" 
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    required
+                    placeholder="john@example.com" 
+                    style={{ width: '100%', padding: '0.8rem', borderRadius: '5px', border: '1px solid #ddd', fontFamily: 'inherit' }} 
+                  />
                 </div>
                 <div>
                   <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>{t('contact_form_message')}</label>
-                  <textarea placeholder="How can we help you?" rows={5} style={{ width: '100%', padding: '0.8rem', borderRadius: '5px', border: '1px solid #ddd', fontFamily: 'inherit', resize: 'vertical' }}></textarea>
+                  <textarea 
+                    name="message"
+                    value={formData.message}
+                    onChange={handleChange}
+                    required
+                    placeholder="How can we help you?" 
+                    rows={5} 
+                    style={{ width: '100%', padding: '0.8rem', borderRadius: '5px', border: '1px solid #ddd', fontFamily: 'inherit', resize: 'vertical' }}
+                  ></textarea>
                 </div>
-                <button type="submit" className="btn btn-primary" style={{ marginTop: '1rem' }}>{t('contact_form_submit')}</button>
+                <button 
+                  type="submit" 
+                  className="btn btn-primary" 
+                  disabled={status === 'loading'}
+                  style={{ marginTop: '1rem', opacity: status === 'loading' ? 0.7 : 1 }}
+                >
+                  {status === 'loading' ? 'Sending...' : t('contact_form_submit')}
+                </button>
               </form>
             </div>
 
